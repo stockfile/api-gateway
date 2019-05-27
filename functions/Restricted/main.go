@@ -5,11 +5,10 @@ import (
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
-// Handler function Using AWS Lambda Proxy Request
-func Handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func handler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	return events.APIGatewayProxyResponse{Body: "ok", StatusCode: 200}, nil
 }
 
 func main() {
-	lambda.Start(Handler)
+	lambda.Start(handler)
 }

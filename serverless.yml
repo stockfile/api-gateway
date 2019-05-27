@@ -6,7 +6,7 @@ provider:
   runtime: go1.x
   stage: ${opt:stage, 'dev'}
   environment:
-    AUTH_SECRET: ${ssm:/${self:service}/${self:provider.stage}/authSecret}
+    AUTH_SECRET: ${ssm:/${self:service}/${self:provider.stage}/authSecret~true}
 
 package:
   exclude:
@@ -15,15 +15,25 @@ package:
   - ./bin/**
 
 functions:
-  authorizer:
+  JwtAuthorizer:
     handler: bin/JwtAuthorizer
 
-  healthcheck:
+  Healthcheck:
     handler: bin/Healthcheck
     events:
       - http:
           path: healthcheck
           method: get
+
+  Restricted:
+    handler: bin/Restricted
+    events:
+      - http:
+          path: restricted
+          method: get
+          authorizer:
+            name: JwtAuthorizer
+            resultTtlInSeconds: 0
 
 plugins:
   - serverless-domain-manager
