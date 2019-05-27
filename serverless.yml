@@ -1,0 +1,42 @@
+service: sf-api-gateway
+
+provider:
+  name: aws
+  region: ap-southeast-1 # Singapore
+  runtime: go1.x
+  stage: ${opt:stage, 'dev'}
+  environment:
+    AUTH_SECRET: ${ssm:/${self:service}/${self:provider.stage}/authSecret}
+
+package:
+  exclude:
+  - ./**
+  include:
+  - ./bin/**
+
+functions:
+  authorizer:
+    handler: bin/JwtAuthorizer
+
+  healthcheck:
+    handler: bin/Healthcheck
+    events:
+      - http:
+          path: healthcheck
+          method: get
+
+plugins:
+  - serverless-domain-manager
+
+custom:
+  customDomain:
+    domainName: ${self:custom.${self:provider.stage}.domain}
+    basePath: ''
+    stage: ${self:provider.stage}
+    createRoute53Record: true
+  dev:
+    domain: "api-dev.stockfile.ph"
+  staging:
+    domain: "api-staging.stockfile.ph"
+  prod:
+    domain: "api.stockfile.ph"
