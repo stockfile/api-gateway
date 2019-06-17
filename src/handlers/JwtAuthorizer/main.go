@@ -31,8 +31,12 @@ func handler(request events.APIGatewayCustomAuthorizerRequest) (events.APIGatewa
 		return events.APIGatewayCustomAuthorizerResponse{}, errors.New("Unauthorized")
 	}
 
-	if _, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-		return generatePolicy("user", "Allow", request.MethodArn), nil
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		policy := generatePolicy("user", "Allow", request.MethodArn)
+		policy.Context["SF-User-Id"] = claims["UserId"]
+		policy.Context["SF-Store-Id"] = claims["StoreId"]
+
+		return policy, nil
 	} else {
 		return events.APIGatewayCustomAuthorizerResponse{}, errors.New("Unauthorized")
 	}
