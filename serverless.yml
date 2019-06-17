@@ -2,8 +2,9 @@ service: sf-api-gateway
 
 provider:
   name: aws
-  region: ap-southeast-1 # Singapore
+  region: ${self:custom.${self:provider.stage}.region}
   runtime: go1.x
+  memorySize: 192
   stage: ${opt:stage, 'dev'}
   environment:
     AUTH_SECRET: ${ssm:/${self:service}/${self:provider.stage}/authSecret~true}
@@ -16,17 +17,17 @@ package:
 
 functions:
   JwtAuthorizer:
-    handler: bin/JwtAuthorizer
+    handler: bin/handlers/JwtAuthorizer
 
   Healthcheck:
-    handler: bin/Healthcheck
+    handler: bin/handlers/Healthcheck
     events:
       - http:
           path: healthcheck
           method: get
 
   Restricted:
-    handler: bin/Restricted
+    handler: bin/handlers/Restricted
     events:
       - http:
           path: restricted
@@ -46,7 +47,10 @@ custom:
     createRoute53Record: true
   dev:
     domain: "api-dev.stockfile.ph"
+    region: "ap-southeast-2" # Sydney
   staging:
     domain: "api-staging.stockfile.ph"
+    region: "ap-southeast-1" # Singapore
   prod:
     domain: "api.stockfile.ph"
+    region: "ap-southeast-1" # Singapore
